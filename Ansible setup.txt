@@ -1,0 +1,507 @@
+ANSIBLE
+=============
+Password Authantication
+==============================
+step 1. Create three machine
+        1 Ansible master
+        2 Node 1
+        3 Node 2
+
+step 2
+========
+
+Now in node 1 and 2
+-------------------------
+
+
+
+
+SSH CONNECTION
+================
+STEP 1 To change root password in Node
+======================================
+sudo su -
+
+To get IP
+---------------
+Node 1 and 2 # hostname -i [for host ip]
+              # ifconfig
+              # ip a
+
+
+node1 and 2  # passwd root
+Enter new password :root
+
+step 2 To configure ssh
+========================
+
+Node 1 and 2
+     # vi /etc/ssh/sshd_config
+   [ptess i for insert mode]
+Do Permit root ligin -yes
+Do Password Authantcation -yes
+
+[press Esc]
+[press :wq]
+
+STEP 3 To Restart SSH service
+==========================
+
+In Node 1 and 2
+
+# service ssh restart [for ubuntu]
+# systemctl restart sshd [for redhat or cetos]
+
+STEP 3 Now Go to Master
+=========================
+sudo su -
+
+Now Check
+--------------
+Master # ssh <node 1 host ip>
+Password :root
+exit [to check another host]
+
+[Now  Master is Connected with Host]
+
+Master # ssh <node 2 host ip>
+Password :root
+
+===========================
+
+
+
+NOW PASSWORD LESS AUTHANTICATION
+======================================
+
+Now in Master
+==================
+
+# ls -a
+# cd .ssh
+# ssh-keygen [To genrate key]
+
+To key genrated 
+----------------
+
+ id_rsa [Private key]
+
+ id_rsa.pub [Public key]
+
+Now copy Public id
+----------------------
+
+ssh-copy-id < host ip of node 1 and 2>
+
+Provide Password Only one Time :root
+
+Now connect Host
+-----------------
+
+Master # ssh <Node Host ip 1 and 2 >
+
+Now you connected Host to Master 
+-----------------------------------------====================================
+======================================================
+
+Now Be are installing Ansible finally
+----------------------------------------------
+
+In Master
+---------
+
+# cat /etc/os-release [check os version]
+
+
+Now we install Ansible in master only not in Node because Ansible is Agent less
+
+Now in master 
+----------------
+
+# apt-get update
+
+# apt-get install software-properties-common -y
+
+#  apt-add-repository ppa:ansible/ansible
+
+Now update repository
+-------------------------
+# apt-get update
+
+Now we install Ansible
+-----------------------
+
+# apt-get install ansible -y [It is based on python so it contain python package]
+
+# ansible --version [To check version]
+
+ ansible 2.9.6
+--------------
+  config file = /etc/ansible/ansible.cfg
+------------------------------------------
+  configured module search path = [u'/root/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python2.7/dist-packages/ansible
+  executable location = /usr/bin/ansible
+  python version = 2.7.17 (default, Nov  7 2019, 10:07:09) [GCC 7.4.0]
+
+Now go to /etc/ansible/ansible.cfg this file
+------------------------------------------------
+
+# cd /etc/ansible/
+
+#ls
+
+ansible.cfg  hosts  roles [These file are found]
+
+Now these two file are copied in home dir
+--------------------------------------------
+
+# cp hosts ~/
+
+# cp ansible.cfg ~/   [~ is symboll for home dir]
+
+# cd [go to home dir]
+ root@ip-172-31-22-36:~# ls
+ansible.cfg  hosts  snap [These two file are found in home dir]
+
+Now go to hosts file
+----------------------
+
+# vi hosts
+
+Now remove all the content By pressin d -key
+
+After this write ip address of both nodes
+inside the hosts
+
+#<ip node1 and 2> [we can write multiple node ip adderss]
+
+Provide group name according to you anything
+----------------------------------------------
+[ubuntu1] [no space b/w character]
+172.31.30.58
+
+[ubuntu2]
+172.31.18.14
+
+[press Esc]
+
+save[:wq]
+
+Now go to second file ansible.config
+------------------------------------------
+
+# vi ansible.cfg
+ 
+Uncomment all these file by removing #
+-------------------------------------------
+inventory      = /etc/ansible/hosts
+library        = /usr/share/my_modules/
+module_utils   = /usr/share/my_module_utils/
+remote_tmp     = ~/.ansible/tmp
+local_tmp      = ~/.ansible/tmp
+plugin_filters_cfg = /etc/ansible/plugin_filters.yml
+forks          = 5
+poll_interval  = 15
+sudo_user      = root
+ask_sudo_pass = True
+ask_pass      = True
+transport      = smart
+remote_port    = 22
+module_lang    = C
+
+
+change  inventory      = /etc/ansible/hosts
+-------------------------------------------
+        inventory      = /root/hosts
+
+Not required this line so we do comment by #
+-------------------------------------------------
+
+#plugin_filters_cfg = /etc/ansible/plugin_filters.yml
+
+
+For ask password
+----------------
+
+  ask_sudo_pass = True [These line True for security which is good for security]
+  ask_pass      = True
+
+But now we dont need because every time asking password
+--------------------------------------------------------
+
+So
+
+put as comment
+------------------
+
+#ask_sudo_pass = True
+#ask_pass      = True
+
+Now save these changes
+---------------------------
+
+press [Esc]
+
+press [:wq]
+
+
+Now go to 
+--------------
+
+# ansible all -m ping
+
+Now add-
+--------
+
+if not add---
+# deprecation_warning=False -- in # vi ansible.cfg
+
+
+Now run
+----------
+
+# ansible all -m ping [-m is for module now be use ping module]
+
+After this it wiil shown---->>>
+
+172.31.30.58 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+172.31.18.14 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"  -->> [ This show means it is connected]
+}
+
+After completing this means your Ansible is configured
+=====================================================================
+
+
+
+Adhoc command for Ansible
+==================================
+
+
+Master
+---------
+
+# ansible all -m ping
+============================
+# root@ip-172-31-22-36:~# ansible all --list-hosts
+  hosts (2):
+    172.31.30.58
+    172.31.18.14
+
+#  ansible ubuntu1 -m setup  [show all the node details]
+==========================
+# root@ip-172-31-22-36:~# ansible ubuntu1 -m setup |grep "ansible_distribution"  [grep is used for the fillter and this command show the all the information of node distribution]
+        "ansible_distribution": "Ubuntu",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "18",
+        "ansible_distribution_release": "bionic",
+        "ansible_distribution_version": "18.04",
+
+-----------------------------------------------------------
+#root@ip-172-31-22-36:~# ansible ubuntu1 -m setup -a  "filter=ansible_distribution" [Ansible have its own filter -a  "filter=ansible_distribution" ] 
+172.31.30.58 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Ubuntu",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+----------------------------------------------------------
+# ansible all  -m setup -a  "filter=ansible_distribution" [by using all we get all the node detail]
+172.31.30.58 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Ubuntu",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.31.18.14 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Ubuntu",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+
+---------------------------------------------------------
+
+# ansible all  -m shell -a "uptime"  [It shows when node is started]
+===================================
+172.31.30.58 | CHANGED | rc=0 >>
+ 04:04:15 up 59 min,  2 users,  load average: 0.08, 0.02, 0.01
+172.31.18.14 | CHANGED | rc=0 >>
+ 04:04:15 up 59 min,  2 users,  load average: 0.00, 0.00, 0.00
+
+---------------------------------------------------------
+
+~# ansible all  -m command  -a "date"    [In the place of command we can use shell or command ]
+172.31.18.14 | CHANGED | rc=0 >>
+Tue Apr  7 04:08:19 UTC 2020
+172.31.30.58 | CHANGED | rc=0 >>
+Tue Apr  7 04:08:19 UTC 2020
+
+------------------------------------------------------------
+
+# ansible all  -m raw  -a "touch demo.txt"   [To create a file ]
+172.31.18.14 | CHANGED | rc=0 >>
+Shared connection to 172.31.18.14 closed.
+
+172.31.30.58 | CHANGED | rc=0 >>
+Shared connection to 172.31.30.58 closed.
+
+-------------------------------------------------------------
+
+~# ansible ubuntu1  -m raw  -a "cat <  demo.txt"  [To open modified file]
+172.31.30.58 | CHANGED | rc=0 >>
+jai shree ram
+Shared connection to 172.31.30.58 closed.
+
+--------------------------------------------------------------
+
+#root@ip-172-31-22-36:~# ansible ubuntu2 -m raw -a "mkdir /tmp/MYDIR1"  [Used to make directory]
+172.31.18.14 | CHANGED | rc=0 >>
+Shared connection to 172.31.18.14 closed.
+
+To check Go to Node and check /tmp/ls
+
+-------------------------------------------------------------
+
+#root@ip-172-31-22-36:~# ansible ubuntu2 -m raw -a "apt-get install -y git-core"  [Command to install package]
+ now want to check go to node and type git --version
+
+-------------------------------------------------------------
+
+root@ip-172-31-22-36:~# ansible ubuntu2 -m apt -a "name=apache2 state=present" [Command is used to install apache package by using apt module]
+                      # ansible ubuntu2 -m apt -a "name=tomcat9 state=present" 
+[To check take node public ip and tomcat portnomber]       [ name= any package we install]
+
+To unstall package
+=====================
+# ansible ubuntu2 -m apt -a "name=tomcat9 state=absent"
+
+-----------------------------------------------------------------
+
+@In ubuntu  we use apt
+@In centos we use yum
+
+But insted of using different we use --> package
+
+Ex--
+
+# root@ip-172-31-22-36:~# ansible all -m package -a "name=tree state=latest"
+
+-----------------------------------------------------------------
+
+#root@ip-172-31-22-36:~# ansible ubuntu2 -m service -a "name=apache2 state=started"
+ [To start service we use service package in ubuntu but in centos -->> use systemd  ]
+
+172.31.18.14 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false, ---> it false because service already started if not started it will True
+    "name": "apache2",
+    "state": "started",
+    "status": {
+
+
+How to confirm service started go to node and write---> netstat -lntp
+---------------------------------
+
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      655/systemd-resolve
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      854/sshd
+tcp6       0      0 :::80 --> in this port                  :::*                    LISTEN      2702/apache2
+tcp6       0      0 :::22   
+
+
+
+To create user-->>>
+====================
+#root@ip-172-31-22-36:~# ansible all -m user -a "name='john' state=present"  [use user module]
+
+
+
+172.31.18.14 | CHANGED => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": true,
+    "comment": "",
+    "create_home": true,
+    "group": 1001,
+    "home": "/home/john",  --->>> now user john is created
+    "name": "john",
+    "shell": "/bin/sh",
+    "state": "present",
+    "system": false,
+    "uid": 1001
+}
+
+
+We also create group
+======================
+
+#root@ip-172-31-22-36:~# ansible all -m group -a "name='sales' state=present"  [use group module]
+
+----------------------------------------
+
+#root@ip-172-31-22-36:~# ansible all -m file -a "name=/tmp/DEVOPS.txt state=touch"
+[ File module to create file]
+
+-----------------------------------------
+
+root@ip-172-31-22-36:~# ansible all -m file -a "name=/tmp/AWS_DIR state=directory"
+ [by using state directory we create directory]
+
+-------------------------------------------
+
+root@ip-172-31-22-36:~# ansible all -m file -a "name=/tmp/AWS_DIR state=absent"
+     [State absent is used fo remove dir or file]
+
+
+----------------------------------------------
+
+To change file permission
+==========================
+
+root@ip-172-31-22-36:~# ansible all -m file -a "name=/tmp/DEVOPS.txt owner=john group=sales mode=777"
+  [add owner we already created and mode 777]
+
+-----------------------------------------------
+
+Now we also set job schedule by using Crontab
+==============================================
+
+root@ip-172-31-22-36:~# ansible all -m cron -a "name='myjob' minute=30 hour=5 job='ls -l / >> /tmp.files.log'"
+ [ cron module is used for crontab scheduling which have job and time]
+
+--------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

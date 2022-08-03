@@ -1,0 +1,34 @@
+
+  47  ansible all -m ping
+
+   49  ansible all --list-hosts
+   50  ansible all -m ping
+   51  ansible ubnt -m setup
+   57  ansible ubnt -m setup | grep "ansible_distribution"
+   58  ansible ubnt -m setup -a "filter=ansible_distribution"
+   59  ansible all -m setup -a "filter=ansible_distribution"
+
+   61  ansible all -m shell -a "uptime"
+   62  ansible all -m command -a "date"
+   63  ansible all -m raw -a "touch /tmp/demo.txt"
+   64  ansible 10.128.0.53 -m raw -a "mkdir /tmp/MYDIR"
+   65  ansible ubnt -m raw -a "apt-get install -y git-core"
+   66  ansible cent -m raw -a "yum install -y git-core"
+
+   69  ansible ubnt -m apt -a "name=apache2 state=present"
+   70  ansible cent -m yum -a "name=httpd state=latest"
+   71  ansible all -m package -a "name=tree state=present"
+
+  74  ansible ubnt -m service -a "name=apache2 state=started"
+   75  ansible cent -m systemd -a "name=httpd state=started"
+   76  clear
+   77  ansible all -m user -a "name='john' state=present"
+   78  ansible all -m group -a "name='sales' state=present"
+   79  clear
+   80  ansible all -m file -a "name=/tmp/DEVOPS.txt state=touch"
+   81  ansible all -m file -a "name=/tmp/AWS_DIR state=directory"
+   82  ansible all -m file -a "name=/tmp/AWS_DIR state=absent"
+   85  ansible all -m file -a "name=/tmp/demo.txt user=john group=sales mode=777"
+   86  ansible all -m file -a "name=/tmp/DEVOPS.txt user=john group=sales mode=777"
+   87  #ansible all -m file -a "name=/tmp/DEVOPS.txt owner=john group=sales mode=777"
+ 93  ansible all -m cron -a "name='myjob' minute=30 hour=5 job='ls -l / >> /tmp.files.log'"

@@ -1,0 +1,99 @@
+Ansible Playbook
+==============================
+
+The ansible book is consist of xmlcode which is to read and write
+
+
+In master node
+================
+
+#mkdir plabook [Directory]
+
+# vi palybook/pb1.yml [make yml file inside dir]
+
+Now we create a Playbook
+============================
+
+1.Create an ansible playbook to copy specific file on multiple host
+----------------------------------------------------------
+
+#  ansible-playbook playbook/pb1.yml --syntax-check 
+  [This command used to check syntax]
+
+# ansible-playbook playbook/pb1.yml
+
+---
+- hosts: all
+  remote_user: root
+  tasks:
+  - name: to copy files
+    copy:
+      src: /root/files/demo.txt
+      dest: /tmp/demo.txt
+
+
+  - name: to display msg
+    debug:
+      msg: File Copied!
+
+
+Now want to check go to node and check-->>
+
+#cd /tmp/
+#ls
+
+#cat demo.txt
+-----------------------------------------------
+
+# cat  playbook/pb1.yml [This is used for show the playbook
+---
+- hosts: all
+  remote_user: root
+  tasks:
+  - name: to copy files
+    copy:
+      src: /root/files/demo.txt
+      dest: /tmp/demo.txt
+
+
+  - name: to display msg
+    debug:
+      msg: File Copied!
+--------------------------------------------------------
+
+2. create Ansible playbook and install apache2 and deploy index.html
+
+
+---
+- hosts: ubuntu1
+  remote_user: root
+  gather_facts: false
+  tasks:
+  - name: to update repo
+    raw: apt-get update
+  - name: to inastall apache
+
+    apt: name=apache2 state=present
+  - name: to deploy file
+    copy:
+      src: /root/files/index.html ------>>>    [First create vi files/index.html]
+      dest: /var/www/html/index.html
+  - name: to start service
+    service: name=apache2 state=started
+
+Now syntax check
+-----------------
+# ansible-playbook playbook/pb3.yml --syntax-check
+
+Now run 
+----------
+
+# ansible-playbook playbook/pb3.yml
+
+Now check the deployed file
+-----------------------------
+Go to node and check file present
+Copy public ip in browser if server is started it will show the html page
+
+
+

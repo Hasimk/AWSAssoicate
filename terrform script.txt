@@ -1,0 +1,16 @@
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ3KWPJ3NNHYIO6OI"
+  secret_key = "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"
+}
+
+resource "aws_instance" "awsvm_server" {
+  ami             = "ami-06640050dc3f556bb"
+  instance_type   = "t2.micro"
+  key_name        = "my-aws-key"
+  security_groups = ["My-SG1"]
+  tags = {
+    Name = "Redhat-EC@-VM"
+
+  }
+}
